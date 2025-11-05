@@ -1,0 +1,528 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thẻ Học Tập ANKI 3D</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        header {
+            background: linear-gradient(to right, #ff9966, #ff5e62);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-bottom: 5px solid #ffcc00;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .tabs {
+            display: flex;
+            background-color: #f0f0f0;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 3px solid #ff5e62;
+            color: #ff5e62;
+        }
+        
+        .content {
+            padding: 20px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Card 3D Styles */
+        .card-container {
+            width: 500px;
+            height: 250px;
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+        
+        .card-3d {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s;
+            cursor: pointer;
+        }
+        
+        .card-3d.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: auto;
+        }
+        
+        .card-front {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A);
+            color: white;
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #2196F3, #03A9F4);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        
+        .card-content {
+            font-size: 1.4rem;
+            text-align: center;
+            line-height: 1.5;
+            width: 100%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 300px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: linear-gradient(to right, #ff9966, #ff5e62);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(255, 94, 98, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(255, 94, 98, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .progress {
+            width: 100%;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .counter {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .file-input-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .file-input-label:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+        
+        #json-file {
+            display: none;
+        }
+        
+        /* Scrollbar styling */
+        .card-front::-webkit-scrollbar, .card-back::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .card-front::-webkit-scrollbar-track, .card-back::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        
+        .card-front::-webkit-scrollbar-thumb, .card-back::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+        }
+        
+        .card-front::-webkit-scrollbar-thumb:hover, .card-back::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.7);
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .tab {
+                padding: 12px;
+                font-size: 1rem;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .card-container {
+                width: 350px;
+                height: 200px;
+            }
+            
+            .card-content {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .card-container {
+                width: 300px;
+                height: 180px;
+            }
+            
+            .card-content {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Thẻ Học Tập ANKI 3D</h1>
+            <div class="subtitle"></div>
+        </header>
+        
+        <div class="file-input-container" style="display: none;">
+            <label for="json-file" class="file-input-label">Tải lên file JSON</label>
+            <input type="file" id="json-file" accept=".json">
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="vocabulary">Từ Vựng</div>
+            <div class="tab" data-tab="sentences">Câu Mẫu</div>
+            <div class="tab" data-tab="dialogue">Hội Thoại</div>
+            <div class="tab" data-tab="grammar">Ngữ Pháp</div>
+        </div>
+        
+        <div class="content">
+            <!-- Từ vựng -->
+            <div id="vocabulary-content" class="tab-content">
+                <div class="counter">Thẻ 1/<span id="vocab-total">0</span></div>
+                <div class="progress">
+                    <div class="progress-bar" id="vocab-progress"></div>
+                </div>
+                <div class="card-container">
+                    <div class="card-3d" id="vocab-card">
+                        <div class="card-front">
+                            <div class="card-content" id="vocab-english"></div>
+                        </div>
+                        <div class="card-back">
+                            <div class="card-content" id="vocab-vietnamese"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button id="prev-vocab">Trước</button>
+                    <button id="next-vocab">Tiếp</button>
+                </div>
+            </div>
+            
+            <!-- Câu mẫu -->
+            <div id="sentences-content" class="tab-content hidden">
+                <div class="counter">Thẻ 1/<span id="sentences-total">0</span></div>
+                <div class="progress">
+                    <div class="progress-bar" id="sentences-progress"></div>
+                </div>
+                <div class="card-container">
+                    <div class="card-3d" id="sentence-card">
+                        <div class="card-front">
+                            <div class="card-content" id="sentence-english"></div>
+                        </div>
+                        <div class="card-back">
+                            <div class="card-content" id="sentence-vietnamese"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button id="prev-sentence">Trước</button>
+                    <button id="next-sentence">Tiếp</button>
+                </div>
+            </div>
+            
+            <!-- Hội thoại -->
+            <div id="dialogue-content" class="tab-content hidden">
+                <div class="counter">Thẻ 1/<span id="dialogue-total">0</span></div>
+                <div class="progress">
+                    <div class="progress-bar" id="dialogue-progress"></div>
+                </div>
+                <div class="card-container">
+                    <div class="card-3d" id="dialogue-card">
+                        <div class="card-front">
+                            <div class="card-content" id="dialogue-english"></div>
+                        </div>
+                        <div class="card-back">
+                            <div class="card-content" id="dialogue-vietnamese"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button id="prev-dialogue">Trước</button>
+                    <button id="next-dialogue">Tiếp</button>
+                </div>
+            </div>
+            
+            <!-- Ngữ pháp -->
+            <div id="grammar-content" class="tab-content hidden">
+                <div class="counter">Thẻ 1/<span id="grammar-total">0</span></div>
+                <div class="progress">
+                    <div class="progress-bar" id="grammar-progress"></div>
+                </div>
+                <div class="card-container">
+                    <div class="card-3d" id="grammar-card">
+                        <div class="card-front">
+                            <div class="card-content" id="grammar-rule"></div>
+                        </div>
+                        <div class="card-back">
+                            <div class="card-content" id="grammar-details"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button id="prev-grammar">Trước</button>
+                    <button id="next-grammar">Tiếp</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu sẽ được chèn vào đây bởi ứng dụng
+        let lessonData = {"lessonPlan":{"title":"Weekend Supermarket Trip - Chuyến đi siêu thị cuối tuần","vocabulary":[{"english":"Supermarket","vietnamese":"Siêu thị"},{"english":"Lunch","vietnamese":"Bữa trưa"},{"english":"Family","vietnamese":"Gia đình"},{"english":"Weekend","vietnamese":"Cuối tuần"},{"english":"Buy","vietnamese":"Mua"},{"english":"Food","vietnamese":"Thức ăn"},{"english":"Together","vietnamese":"Cùng nhau"},{"english":"Delicious","vietnamese":"Ngon"}],"sentences":[{"english":"We go to the supermarket on the weekend.","vietnamese":"Chúng tôi đi siêu thị vào cuối tuần."},{"english":"I buy food for lunch.","vietnamese":"Tôi mua thức ăn cho bữa trưa."},{"english":"My family eats together.","vietnamese":"Gia đình tôi ăn cùng nhau."},{"english":"The food at the supermarket is delicious.","vietnamese":"Thức ăn ở siêu thị rất ngon."},{"english":"Let's enjoy our lunch!","vietnamese":"Hãy cùng tận hưởng bữa trưa của chúng ta!"}],"dialogue":[{"speaker":"A","line":{"english":"Hi, B! What are you doing this weekend?","vietnamese":"Chào B! Cuối tuần bạn làm gì?"}},{"speaker":"B","line":{"english":"Hi, A! My family and I will go to the supermarket.","vietnamese":"Chào A! Gia đình tôi và tôi sẽ đi siêu thị."}},{"speaker":"A","line":{"english":"Oh, that's nice! What will you buy?","vietnamese":"Ồ, hay đấy! Bạn sẽ mua gì?"}},{"speaker":"B","line":{"english":"We will buy food for lunch. We eat lunch together there.","vietnamese":"Chúng tôi sẽ mua thức ăn cho bữa trưa. Chúng tôi ăn trưa cùng nhau ở đó."}},{"speaker":"A","line":{"english":"Sounds delicious! Enjoy your lunch!","vietnamese":"Nghe có vẻ ngon đấy! Chúc bạn ăn trưa vui vẻ!"}},{"speaker":"B","line":{"english":"Thank you! See you!","vietnamese":"Cảm ơn! Hẹn gặp lại!"}}],"grammar":[{"rule":"Simple Present Tense (Thì hiện tại đơn)","explanation":"Thì hiện tại đơn được dùng để diễn tả các hành động lặp đi lặp lại, thói quen hoặc sự thật. Trong bài này, chúng ta dùng nó để nói về hoạt động thường xuyên vào cuối tuần.","example":{"english":"We go to the supermarket on the weekend.","vietnamese":"Chúng tôi đi siêu thị vào cuối tuần."}},{"rule":"To be verb (Động từ 'to be')","explanation":"Động từ 'to be' (is, am, are) được sử dụng để mô tả, giới thiệu, hoặc nói về trạng thái của một người, vật hay sự việc. Nó thường đi kèm với tính từ hoặc danh từ.","example":{"english":"The food is delicious.","vietnamese":"Thức ăn rất ngon."}}]}};
+
+        // Biến trạng thái
+        let currentTab = 'vocabulary';
+        let currentVocabIndex = 0;
+        let currentSentenceIndex = 0;
+        let currentDialogueIndex = 0;
+        let currentGrammarIndex = 0;
+
+        // Khởi tạo
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!lessonData || !lessonData.lessonPlan) {
+                document.querySelector('.container').innerHTML = '<h1>Lỗi: Không tìm thấy dữ liệu bài học.</h1>';
+                return;
+            }
+
+            document.querySelector('header .subtitle').textContent = lessonData.lessonPlan.title;
+
+            // Thiết lập tổng số thẻ
+            updateTotals();
+            
+            // Hiển thị thẻ đầu tiên
+            showVocabCard();
+            showSentenceCard();
+            showDialogueCard();
+            showGrammarCard();
+            
+            // Xử lý sự kiện tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+                    
+                    currentTab = this.getAttribute('data-tab');
+                    document.getElementById(`${currentTab}-content`).classList.remove('hidden');
+                });
+            });
+            
+            // Xử lý sự kiện nút
+            document.getElementById('prev-vocab').addEventListener('click', prevVocab);
+            document.getElementById('next-vocab').addEventListener('click', nextVocab);
+            document.getElementById('prev-sentence').addEventListener('click', prevSentence);
+            document.getElementById('next-sentence').addEventListener('click', nextSentence);
+            document.getElementById('prev-dialogue').addEventListener('click', prevDialogue);
+            document.getElementById('next-dialogue').addEventListener('click', nextDialogue);
+            document.getElementById('prev-grammar').addEventListener('click', prevGrammar);
+            document.getElementById('next-grammar').addEventListener('click', nextGrammar);
+            
+            // Xử lý sự kiện lật thẻ
+            document.querySelectorAll('.card-3d').forEach(card => {
+                card.addEventListener('click', () => card.classList.toggle('flipped'));
+            });
+        });
+
+        function updateTotals() {
+            document.getElementById('vocab-total').textContent = lessonData.lessonPlan.vocabulary.length;
+            document.getElementById('sentences-total').textContent = lessonData.lessonPlan.sentences.length;
+            document.getElementById('dialogue-total').textContent = lessonData.lessonPlan.dialogue.length;
+            document.getElementById('grammar-total').textContent = lessonData.lessonPlan.grammar.length;
+        }
+
+        // --- Hàm hiển thị và điều khiển thẻ ---
+
+        function updateCard(type, index, total, elements) {
+            const cardElement = document.getElementById(`${type}-card`);
+            if (cardElement) cardElement.classList.remove('flipped');
+            
+            const counterElement = document.querySelector(`#${type}-content .counter`);
+            if(counterElement) counterElement.textContent = `Thẻ ${index + 1}/${total}`;
+
+            const progressElement = document.getElementById(`${type}-progress`);
+            if(progressElement) progressElement.style.width = `${(index / (total - 1 || 1)) * 100}%`;
+
+            for(const [elementId, content] of Object.entries(elements)) {
+                const el = document.getElementById(elementId);
+                if(el) el.innerHTML = content;
+            }
+        }
+
+        function showVocabCard() {
+            const item = lessonData.lessonPlan.vocabulary[currentVocabIndex];
+            updateCard('vocab', currentVocabIndex, lessonData.lessonPlan.vocabulary.length, {
+                'vocab-english': item.english,
+                'vocab-vietnamese': item.vietnamese
+            });
+        }
+        function prevVocab() { if (currentVocabIndex > 0) { currentVocabIndex--; showVocabCard(); } }
+        function nextVocab() { if (currentVocabIndex < lessonData.lessonPlan.vocabulary.length - 1) { currentVocabIndex++; showVocabCard(); } }
+
+        function showSentenceCard() {
+            const item = lessonData.lessonPlan.sentences[currentSentenceIndex];
+            updateCard('sentence', currentSentenceIndex, lessonData.lessonPlan.sentences.length, {
+                'sentence-english': item.english,
+                'sentence-vietnamese': item.vietnamese
+            });
+        }
+        function prevSentence() { if (currentSentenceIndex > 0) { currentSentenceIndex--; showSentenceCard(); } }
+        function nextSentence() { if (currentSentenceIndex < lessonData.lessonPlan.sentences.length - 1) { currentSentenceIndex++; showSentenceCard(); } }
+
+        function showDialogueCard() {
+            const item = lessonData.lessonPlan.dialogue[currentDialogueIndex];
+            updateCard('dialogue', currentDialogueIndex, lessonData.lessonPlan.dialogue.length, {
+                'dialogue-english': `<b>${item.speaker}:</b> ${item.line.english}`,
+                'dialogue-vietnamese': `<b>${item.speaker}:</b> ${item.line.vietnamese}`
+            });
+        }
+        function prevDialogue() { if (currentDialogueIndex > 0) { currentDialogueIndex--; showDialogueCard(); } }
+        function nextDialogue() { if (currentDialogueIndex < lessonData.lessonPlan.dialogue.length - 1) { currentDialogueIndex++; showDialogueCard(); } }
+
+        function showGrammarCard() {
+            const item = lessonData.lessonPlan.grammar[currentGrammarIndex];
+            updateCard('grammar', currentGrammarIndex, lessonData.lessonPlan.grammar.length, {
+                'grammar-rule': item.rule,
+                'grammar-details': `
+                    <div style="margin-bottom: 15px;">${item.explanation}</div>
+                    <div style="font-style: italic;">
+                        <div style="margin-bottom: 5px;">${item.example.english}</div>
+                        <div>${item.example.vietnamese}</div>
+                    </div>
+                `
+            });
+        }
+        function prevGrammar() { if (currentGrammarIndex > 0) { currentGrammarIndex--; showGrammarCard(); } }
+        function nextGrammar() { if (currentGrammarIndex < lessonData.lessonPlan.grammar.length - 1) { currentGrammarIndex++; showGrammarCard(); } }
+
+    </script>
+</body>
+</html>
